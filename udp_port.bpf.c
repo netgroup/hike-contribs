@@ -2,6 +2,8 @@
 
 #define HIKE_PROG_NAME	udp_port
 
+#define HIKE_DEBUG 1
+
 #include <stddef.h>
 #include <linux/in.h>
 #include <linux/if_ether.h>
@@ -41,14 +43,16 @@ HIKE_PROG(HIKE_PROG_NAME)
 	if (nh.next_header != NEXT_HEADER_UDP)
 		goto drop;
 
-	ipv6_get_udp_port(ctx, cur, &dp);
+	HVM_RET = ipv6_get_udp_port(ctx, cur, &dp);
 	DEBUG_HKPRG_PRINT("Prova DEBUG_HKPRG_PRINT, port: %u", dp.dst_port);
+
 
 	return HIKE_XDP_VM;
 
 drop:
 	DEBUG_HKPRG_PRINT(" : drop packet");
-	return HIKE_XDP_ABORTED;
+	HVM_RET = 100000;
+	return HIKE_XDP_VM;
 }
 EXPORT_HIKE_PROG(HIKE_PROG_NAME);
 
