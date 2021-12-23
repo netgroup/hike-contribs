@@ -20,7 +20,8 @@ EBPF_SRC ?= ip6_sd_tbmon.bpf.c \
 	    ip6_sd_meter.bpf.c \
 	    ip6_src_meter.bpf.c \
 	    ip6_dst_meter.bpf.c \
-        ip6_sd_dec2zero.bpf.c
+        ip6_sd_dec2zero.bpf.c \
+		udp_port.bpf.c
 
 # Hike Chains; add more HIKe Chains here.
 HIKE_CHAIN_SRC ?= minimal_chain.hike.c
