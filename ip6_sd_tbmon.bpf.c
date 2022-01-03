@@ -77,7 +77,7 @@ static __always_inline struct flow * set_flow (struct flow * f,
   return f;
 }   
 
-/* ip6_srcdst_tb_mon ()
+/* ip6_sd_tbmon ()
  * 
  * per-CPU Token Bucket Monitor HIKe Program
  * 

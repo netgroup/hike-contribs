@@ -67,7 +67,7 @@ static __always_inline struct flow_meter_basic * set_flow (struct flow_meter_bas
   return f;
 }   
 
-/* ip6_srcdst_mtr_basic ()
+/* ip6_src_meter ()
  * 
  * per-CPU counter HIKe Program
  * 

@@ -67,7 +67,7 @@ static __always_inline struct flow_meter_basic * set_flow (struct flow_meter_bas
   return f;
 }   
 
-/* ip6_srcdst_mtr_basic ()
+/* ip6_dst_meter ()
  * 
  * per-CPU counter HIKe Program
  * 
@@ -89,7 +89,7 @@ HIKE_PROG(HIKE_PROG_NAME) {
   struct pkt_info *info = hike_pcpu_shmem();
   struct hdr_cursor *cur;
 
-  DEBUG_PRINT("Hi there!");
+  //DEBUG_PRINT("Hi there!");
 
 	/* take the reference to the cursor object which has been saved into
 	 * the HIKe per-cpu shared memory

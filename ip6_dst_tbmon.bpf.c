@@ -77,7 +77,7 @@ static __always_inline struct flow * set_flow (struct flow * f,
   return f;
 }   
 
-/* ip6_srcdst_tb_mon ()
+/* ip6_dst_tbmon ()
  * 
  * per-CPU Token Bucket Monitor HIKe Program
  * 
@@ -103,7 +103,7 @@ HIKE_PROG(HIKE_PROG_NAME) {
   struct pkt_info *info = hike_pcpu_shmem();
   struct hdr_cursor *cur;
 
-  DEBUG_PRINT("Hi there!");
+  //DEBUG_HKPRG_PRINT("Hi there!");
 
 	/* take the reference to the cursor object which has been saved into
 	 * the HIKe per-cpu shared memory
