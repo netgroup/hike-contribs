@@ -2,6 +2,9 @@
 
 #define HIKE_PROG_NAME	ipv6_alt_mark
 
+#define REAL
+//#define REPL
+
 #include <stddef.h>
 #include <linux/in.h>
 #include <linux/if_ether.h>
@@ -18,6 +21,7 @@
 
 #include "parse_helpers.h"
 #include "hike_vm.h"
+#include "ip6_alt_mark.h"
 
 /* HIKe eBPF Program
  *
@@ -45,12 +49,13 @@ HIKE_PROG(HIKE_PROG_NAME)
 	struct pkt_info *info = hike_pcpu_shmem();
 	struct hdr_cursor *cur;
 	struct ipv6hdr *ip6h;
-	struct ipv6_hopopt_hdr *hopopt_h;
-	bool found = false;
-	bool final = false;
+	//struct ipv6_hopopt_hdr *hopopt_h;
+	struct ipv6_hopopt_hdr_and_alt_mark *hopopt_altmark_h;
+	//bool found = false;
+	//bool final = false;
 	__u8 nexthdr;
-	int start;
-	int len;
+	//int start;
+	//int len;
 	int rc;
 
 	if (unlikely(!info))
@@ -71,17 +76,19 @@ HIKE_PROG(HIKE_PROG_NAME)
 
 	rc = 0;
 	if (nexthdr == IPPROTO_HOPOPTS) {
-		if (!cur_may_pull(ctx, cur, sizeof(struct ipv6_hopopt_hdr )))
+		if (!cur_may_pull(ctx, cur, sizeof(struct ipv6_hopopt_hdr_and_alt_mark )))
 			goto error;
 
-		hopopt_h = (struct ipv6_hopopt_hdr *)cur_header_pointer(ctx, cur, cur->dataoff,
-							    sizeof(*hopopt_h));
-		if (unlikely(!hopopt_h))
+		hopopt_altmark_h = (struct ipv6_hopopt_hdr_and_alt_mark *)cur_header_pointer(ctx, cur, cur->dataoff,
+							    sizeof(*hopopt_altmark_h));
+		if (unlikely(!hopopt_altmark_h))
 			goto error;
 
-		__pull(cur, sizeof(*hopopt_h));
+		__pull(cur, sizeof(*hopopt_altmark_h));
 
-		rc = 1;
+		DEBUG_PRINT("HBH Alt Mark %x",bpf_htonl(hopopt_altmark_h->altmark_payload));
+
+		rc = hopopt_altmark_h->altmark_payload;
 		goto out;
 	}
 
