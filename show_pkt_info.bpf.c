@@ -3,6 +3,16 @@
 /* HIKe Prog Name comes always first */
 #define HIKE_PROG_NAME    show_pkt_info
 
+/*
+ * works on IPv6 packets
+ * assumes that a program (usually, the classifier) has
+ * already parsed the program up to the network layer
+ * i.e. cur->nhoff is set
+ *
+ * TODO : may be some errors could be handled instead of dropping
+ * packet, considering that this is a debug tool
+ */
+
 #define HIKE_DEBUG 1
 
 #define REAL
@@ -36,6 +46,8 @@
 #define NET_LAYER 2
 #define TRANSP_LAYER 4
 
+#define NOT_INITIALIZED 0
+
 
 /* show_pkt_info ()
  * 
@@ -55,11 +67,14 @@ HIKE_PROG(HIKE_PROG_NAME) {
   struct hdr_cursor *cur;
 
   struct ethhdr *eth_h;
+  struct ipv6hdr *ip6h;
 
   int select_layers = HVM_ARG2;
   int user_info = HVM_ARG3;
 
-  __u8 test;
+  __u64 display;
+  __u64 display2;
+
   if (unlikely(!info))
     goto drop;
 
@@ -71,25 +86,56 @@ HIKE_PROG(HIKE_PROG_NAME) {
 
 
   if (select_layers & LAYER_2) {
-
-    if (!cur_may_pull(ctx, cur, sizeof(struct ethhdr )))
-      goto drop;
-      
+    
     eth_h = (struct ethhdr *)cur_header_pointer(ctx, cur, cur->mhoff,
                sizeof(*eth_h));
+    if (unlikely(!eth_h)) goto drop;
+
     //DEBUG_PRINT("Layer 2 info : %c %c",eth_h->h_dest[0], eth_h->h_dest[1]);
-    test= eth_h->h_dest[0];
-    //DEBUG_PRINT("Layer 2 info : %u ",eth_h->h_dest[0]);
-    //DEBUG_PRINT("Layer 2 info : %u",test);
-    DEBUG_PRINT("Layer 2 info : ");
+    display= *((__u64 *)&eth_h->h_dest[0]) ;
+    display= bpf_be64_to_cpu(display) >> 16;
+    DEBUG_PRINT("Layer 2 dst : %llx",display);
+
+    display= *((__u64 *)&eth_h->h_source[0]) ;
+    display= bpf_be64_to_cpu(display) >> 16;
+    DEBUG_PRINT("Layer 2 src : %llx",display);
+
+    //DEBUG_PRINT("Layer 2 info : ");
   }
   
   if (select_layers & NET_LAYER) {
-    DEBUG_PRINT("Net Layer info : ");  
+
+    //TODO check that network layer is parsed ad is IPv6
+    //TODO 2 if not parsed, we could parse it (but we should make sure 
+    //       that the program is idempotent on ctx, cur...)
+
+    ip6h = (struct ipv6hdr *)cur_header_pointer(ctx, cur, cur->nhoff,
+                sizeof(*ip6h));
+    if (unlikely(!ip6h)) goto drop;
+    
+    display= *((__u64 *)&ip6h->saddr) ;
+    display= bpf_be64_to_cpu(display);
+    display2= *((__u64 *)&ip6h->saddr  + 1 ) ;
+    display2= bpf_be64_to_cpu(display2);
+    DEBUG_PRINT("Net Layer src : %llx %llx",display,display2);  
+
+    display= *((__u64 *)&ip6h->daddr) ;
+    display= bpf_be64_to_cpu(display);
+    display2= *((__u64 *)&ip6h->daddr  + 1 ) ;
+    display2= bpf_be64_to_cpu(display2);
+    DEBUG_PRINT("Net Layer dst : %llx %llx",display,display2);  
+
   }
 
   if (select_layers & TRANSP_LAYER) {
-    DEBUG_PRINT("Transp Layer info : ");  
+
+    //SKIPPARE 
+    if (cur->thoff != NOT_INITIALIZED) {
+
+    } else {
+      DEBUG_PRINT("No Transp Layer info");  
+    }
+      
   }
 
   DEBUG_PRINT("User info : %u",user_info);
