@@ -14,6 +14,8 @@
  * 
  * TODO : we could improve the printing by buffering different print
  * and the making a single print
+ * 
+ * TODO : print TCP ports
  */
 
 #define HIKE_DEBUG 1
@@ -36,7 +38,6 @@
   #include "hike_vm.h"
   #include "parse_helpers.h"
   #include "ip6_hset.h"
-  
 #endif  
 
 #ifdef REPL
@@ -141,6 +142,7 @@ HIKE_PROG(HIKE_PROG_NAME) {
   }
 
   if (select_layers & TRANSP_LAYER) {
+    // ipv6_find_hdr is defined in parse_helpers.h
     ret = ipv6_find_hdr(ctx, cur, &offset, -1, NULL, NULL);
     if (unlikely(ret < 0)) {
       switch (ret) {
